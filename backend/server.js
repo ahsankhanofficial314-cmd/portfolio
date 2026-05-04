@@ -13,7 +13,9 @@ const allowedOrigins = [
     'http://localhost:3000',
     'http://localhost:5500',
     'https://portfolio-gules-zeta-y02i8pzeux.vercel.app',
-    'https://portfolio-h721-83j45bv4t-ahsankhanofficial314-cmds-projects.vercel.app'
+    'https://portfolio-h721-83j45bv4t-ahsankhanofficial314-cmds-projects.vercel.app',
+    'https://portfolio-lilac-alpha-48.vercel.app',
+    'https://portfolio-qd63.vercel.app'
 ];
 
 app.use(cors({
