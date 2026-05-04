@@ -128,12 +128,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Run both in parallel
                 const [formspreeRes, backendRes] = await Promise.all([formspreePromise, backendPromise]);
 
-                const data = await response.json();
-
-                if (response.ok) {
+                if (backendRes.ok) {
                     showStatus('Message sent successfully! I will get back to you soon.', 'success');
                     contactForm.reset();
                 } else {
+                    const data = await backendRes.json();
                     showStatus(data.error || 'Something went wrong. Please try again.', 'error');
                 }
             } catch (error) {
