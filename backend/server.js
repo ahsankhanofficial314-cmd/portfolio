@@ -20,14 +20,21 @@ const allowedOrigins = [
 
 app.use(cors({
     origin: function (origin, callback) {
-        // allow requests with no origin (like mobile apps or curl requests)
+        // Allow requests with no origin (like mobile apps or curl)
         if (!origin) return callback(null, true);
-        if (allowedOrigins.indexOf(origin) === -1) {
-            const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-            return callback(new Error(msg), false);
+        
+        // Dynamic check: Allow localhost OR any .vercel.app domain
+        const isLocalhost = origin.includes('localhost');
+        const isVercel = origin.endsWith('.vercel.app');
+
+        if (isLocalhost || isVercel) {
+            callback(null, true);
+        } else {
+            console.log('Blocked by CORS:', origin);
+            callback(new Error('CORS policy: This origin is not allowed.'), false);
         }
-        return callback(null, true);
-    }
+    },
+    credentials: true
 }));
 
 app.use(express.json());
