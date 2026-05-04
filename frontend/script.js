@@ -1,3 +1,9 @@
+// Professional API Configuration
+const CONFIG = {
+    // Replace with your actual backend URL after deploying to Render
+    API_URL: window.location.hostname === 'localhost' ? 'http://localhost:5000' : 'https://portfolio-backend-ahsankhan.onrender.com'
+};
+
 document.addEventListener('DOMContentLoaded', () => {
     // --- Set current year in footer ---
     document.getElementById('year').textContent = new Date().getFullYear();
@@ -73,16 +79,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Update UI
             const originalBtnText = submitBtn.textContent;
-            submitBtn.textContent = 'Sending...';
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
             submitBtn.disabled = true;
 
             try {
-                // Send data to FormSubmit
-                const response = await fetch('https://formsubmit.co/ajax/ahsankhanofficial314@gmail.com', {
+                // Send data to our own Backend API
+                const response = await fetch(`${CONFIG.API_URL}/api/contact`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Accept': 'application/json'
                     },
                     body: JSON.stringify({ name, email, message })
                 });
@@ -90,14 +95,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await response.json();
 
                 if (response.ok) {
-                    showStatus(data.message, 'success');
+                    showStatus('Message sent successfully! I will get back to you soon.', 'success');
                     contactForm.reset();
                 } else {
-                    showStatus(data.error || 'Something went wrong.', 'error');
+                    showStatus(data.error || 'Something went wrong. Please try again.', 'error');
                 }
             } catch (error) {
                 console.error('Error submitting form:', error);
-                showStatus('Error connecting to server. Is the backend running?', 'error');
+                showStatus('Cannot connect to the server. Please check your internet or try again later.', 'error');
             } finally {
                 // Restore UI
                 submitBtn.textContent = originalBtnText;
@@ -110,10 +115,14 @@ document.addEventListener('DOMContentLoaded', () => {
         formStatus.textContent = message;
         formStatus.className = `form-status ${type}`;
         
-        // Clear message after 5 seconds
+        // Scroll to status message for mobile users
+        formStatus.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        
+        // Clear message after 6 seconds
         setTimeout(() => {
             formStatus.textContent = '';
             formStatus.className = 'form-status';
-        }, 5000);
+        }, 6000);
     }
 });
+
