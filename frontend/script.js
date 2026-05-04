@@ -100,14 +100,33 @@ document.addEventListener('DOMContentLoaded', () => {
             submitBtn.disabled = true;
 
             try {
-                // Send data to our own Backend API
-                const response = await fetch(`${CONFIG.API_URL}/api/contact`, {
+                // 1. Send to Formspree (for guaranteed Email delivery)
+                // Formspree will handle the email sending to your Gmail
+                const formspreePromise = fetch('https://formspree.io/ahsankhanofficial314@gmail.com', {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: name,
+                        email: email,
+                        message: message,
+                        _subject: `New Portfolio Message from ${name}`
+                    })
+                });
+
+                // 2. Send data to our own Backend API (for MongoDB storage)
+                const backendPromise = fetch(`${CONFIG.API_URL}/api/contact`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({ name, email, message })
                 });
+
+                // Run both in parallel
+                const [formspreeRes, backendRes] = await Promise.all([formspreePromise, backendPromise]);
 
                 const data = await response.json();
 
