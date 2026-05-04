@@ -2,7 +2,7 @@
 const CONFIG = {
     API_URL: window.location.hostname === 'localhost' 
         ? 'http://localhost:5000' 
-        : 'https://portfolio-khkl.vercel.app'
+        : 'https://portfolio-backend-final.vercel.app'
 };
 
 document.addEventListener('DOMContentLoaded', () => {
