@@ -1,7 +1,8 @@
 // Professional API Configuration
 const CONFIG = {
-    // Replace with your actual backend URL after deploying to Render
-    API_URL: window.location.hostname === 'localhost' ? 'http://localhost:5000' : 'https://portfolio-backend-ahsankhan.onrender.com'
+    API_URL: window.location.hostname === 'localhost' 
+        ? 'http://localhost:5000' 
+        : 'https://portfolio-r57t-jlhuxuiz9-ahsankhanofficial314-cmds-projects.vercel.app'
 };
 
 document.addEventListener('DOMContentLoaded', () => {
