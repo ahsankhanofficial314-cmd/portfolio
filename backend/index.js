@@ -57,10 +57,24 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-// MongoDB Connection
-mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log('MongoDB Connected Successfully!'))
-    .catch((err) => console.log('MongoDB Connection Error: ', err));
+// MongoDB Connection Handling for Serverless
+let cachedConnection = null;
+
+async function connectToDatabase() {
+    if (cachedConnection) {
+        return cachedConnection;
+    }
+
+    try {
+        const connection = await mongoose.connect(process.env.MONGO_URI);
+        cachedConnection = connection;
+        console.log('MongoDB Connected Successfully!');
+        return connection;
+    } catch (err) {
+        console.error('MongoDB Connection Error:', err.message);
+        throw err;
+    }
+}
 
 // Message Schema
 const messageSchema = new mongoose.Schema({
@@ -70,7 +84,7 @@ const messageSchema = new mongoose.Schema({
     date: { type: Date, default: Date.now }
 });
 
-const Message = mongoose.model('Message', messageSchema);
+const Message = mongoose.models.Message || mongoose.model('Message', messageSchema);
 
 // Basic route
 app.get('/', (req, res) => {
@@ -86,6 +100,9 @@ app.post('/api/contact', async (req, res) => {
     }
 
     try {
+        // Ensure Database Connection
+        await connectToDatabase();
+
         // Save to MongoDB
         const newMessage = new Message({ name, email, message });
         await newMessage.save();
@@ -109,14 +126,16 @@ app.post('/api/contact', async (req, res) => {
             console.log('Email notification sent successfully');
         } catch (emailError) {
             console.error('Email sending failed:', emailError.message);
-            // Optionally, you might not want to fail the whole request if email fails, 
-            // but for serverless it's better to await it.
         }
 
         res.status(200).json({ success: true, message: 'Message sent successfully! I will get back to you soon.' });
     } catch (error) {
-        console.error('Database Error:', error);
-        res.status(500).json({ success: false, error: 'Internal Server Error' });
+        console.error('SERVER ERROR:', error);
+        res.status(500).json({ 
+            success: false, 
+            error: 'Internal Server Error',
+            details: process.env.NODE_ENV !== 'production' ? error.message : undefined 
+        });
     }
 });
 
