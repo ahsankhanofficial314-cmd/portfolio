@@ -1,9 +1,25 @@
 // Professional API Configuration
 const CONFIG = {
-    API_URL: window.location.hostname === 'localhost' 
-        ? 'http://localhost:5000' 
-        : 'https://portfolio-backend-final.vercel.app'
+    API_URL: getApiUrl()
 };
+
+function getApiUrl() {
+    const hostname = window.location.hostname;
+    const protocol = window.location.protocol;
+    
+    // Development: Use local backend
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+        return 'http://localhost:5000';
+    }
+    
+    // Production: Use backend from same domain (monorepo on Vercel)
+    if (hostname.includes('vercel.app')) {
+        return `${protocol}//${hostname}`;
+    }
+    
+    // Fallback
+    return 'https://portfolio-backend.vercel.app';
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     // --- Set current year in footer ---

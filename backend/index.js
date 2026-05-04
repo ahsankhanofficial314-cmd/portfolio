@@ -2,16 +2,21 @@ import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import nodemailer from 'nodemailer';
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Professional CORS Configuration
+// CORS Configuration - Flexible for production and development
 const allowedOrigins = [
+    // Development
     'http://localhost:3000',
+    'http://localhost:5173',
     'http://localhost:5500',
+    'http://127.0.0.1:5173',
+    // Production - Your specific Vercel domains
     'https://portfolio-gules-zeta-y02i8pzeux.vercel.app',
     'https://portfolio-h721-83j45bv4t-ahsankhanofficial314-cmds-projects.vercel.app',
     'https://portfolio-lilac-alpha-48.vercel.app',
@@ -20,24 +25,37 @@ const allowedOrigins = [
 
 app.use(cors({
     origin: function (origin, callback) {
-        // Allow requests with no origin (like mobile apps or curl)
+        // Allow requests with no origin (like mobile apps, curl, or Vercel serverless)
         if (!origin) return callback(null, true);
         
-        // Dynamic check: Allow localhost OR any .vercel.app domain
-        const isLocalhost = origin.includes('localhost');
-        const isVercel = origin.endsWith('.vercel.app');
-
-        if (isLocalhost || isVercel) {
+        // Check if origin is in allowlist
+        if (allowedOrigins.includes(origin)) {
             callback(null, true);
-        } else {
+        }
+        // Also allow any vercel.app domain as fallback
+        else if (origin.includes('vercel.app') || origin.includes('localhost')) {
+            callback(null, true);
+        }
+        else {
             console.log('Blocked by CORS:', origin);
             callback(new Error('CORS policy: This origin is not allowed.'), false);
         }
     },
-    credentials: true
+    credentials: true,
+    methods: ['GET', 'POST', 'OPTIONS'],
+    allowedHeaders: ['Content-Type']
 }));
 
 app.use(express.json());
+
+// Email Transporter Configuration
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+    }
+});
 
 // MongoDB Connection
 mongoose.connect(process.env.MONGO_URI)
@@ -68,12 +86,31 @@ app.post('/api/contact', async (req, res) => {
     }
 
     try {
+        // Save to MongoDB
         const newMessage = new Message({ name, email, message });
         await newMessage.save();
         console.log(`New message saved from ${name} (${email})`);
+
+        // Send email notification to admin (non-blocking)
+        transporter.sendMail({
+            from: process.env.EMAIL_USER,
+            to: process.env.EMAIL_USER,
+            subject: `New Portfolio Message from ${name}`,
+            html: `
+                <h2>New Message Received!</h2>
+                <p><strong>From:</strong> ${name}</p>
+                <p><strong>Email:</strong> ${email}</p>
+                <p><strong>Message:</strong></p>
+                <p>${message.replace(/\n/g, '<br>')}</p>
+                <p><small>Time: ${new Date().toLocaleString()}</small></p>
+            `
+        }).catch((emailError) => {
+            console.error('Email sending failed:', emailError.message);
+        });
+
         res.status(200).json({ success: true, message: 'Message sent successfully! I will get back to you soon.' });
     } catch (error) {
-        console.error('Save error:', error);
+        console.error('Database Error:', error);
         res.status(500).json({ success: false, error: 'Internal Server Error' });
     }
 });
