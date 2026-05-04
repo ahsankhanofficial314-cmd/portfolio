@@ -2,7 +2,7 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "Portfolio Backend with Nodemon (Vite-style)",
-  "main": "server.js",
+  "main": "index.js",
   "type": "module",
   "scripts": {
     "dev": "nodemon index.js",
