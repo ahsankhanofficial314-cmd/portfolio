@@ -2,7 +2,7 @@
 const CONFIG = {
     API_URL: window.location.hostname === 'localhost' 
         ? 'http://localhost:5000' 
-        : 'https://portfolio-r57t-jlhuxuiz9-ahsankhanofficial314-cmds-projects.vercel.app'
+        : 'https://portfolio-khkl.vercel.app'
 };
 
 document.addEventListener('DOMContentLoaded', () => {
